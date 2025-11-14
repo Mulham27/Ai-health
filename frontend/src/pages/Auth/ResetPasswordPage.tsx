@@ -6,7 +6,7 @@ import { Button } from "../../components/ui/button.tsx";
 import { Input } from "../../components/ui/input.tsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card.tsx";
 import { Label } from "@radix-ui/react-label";
-import { Lock, AlertCircle, ArrowLeft } from "lucide-react"
+import { Lock, AlertCircle, ArrowLeft, Eye, EyeOff } from "lucide-react"
 import { api } from "../../lib/api"
 import { z } from "zod"
 import { toast } from "sonner"
@@ -24,6 +24,8 @@ export function ResetPasswordPage() {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [fieldErrors, setFieldErrors] = useState<{ password?: string; confirmPassword?: string }>({})
     const [touched, setTouched] = useState<{ password?: boolean; confirmPassword?: boolean }>({})
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [message, setMessage] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
@@ -142,7 +144,7 @@ export function ResetPasswordPage() {
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                     <Input 
                                         id="password" 
-                                        type="password" 
+                                        type={showPassword ? "text" : "password"} 
                                         placeholder="Enter your new password"
                                         value={password} 
                                         onChange={(e) => {
@@ -150,8 +152,16 @@ export function ResetPasswordPage() {
                                             if (touched.password) validatePassword(e.target.value)
                                         }}
                                         onBlur={() => handleBlur("password")}
-                                        className={`pl-10 h-11 ${fieldErrors.password && touched.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                                        className={`pl-10 pr-12 h-11 ${fieldErrors.password && touched.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
                                 </div>
                                 {fieldErrors.password && touched.password && (
                                     <p className="text-sm text-destructive flex items-center gap-1">
@@ -167,7 +177,7 @@ export function ResetPasswordPage() {
                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                     <Input 
                                         id="confirmPassword" 
-                                        type="password" 
+                                        type={showConfirmPassword ? "text" : "password"} 
                                         placeholder="Re-enter your new password"
                                         value={confirmPassword} 
                                         onChange={(e) => {
@@ -175,8 +185,16 @@ export function ResetPasswordPage() {
                                             if (touched.confirmPassword) validateConfirmPassword()
                                         }}
                                         onBlur={() => handleBlur("confirmPassword")}
-                                        className={`pl-10 h-11 ${fieldErrors.confirmPassword && touched.confirmPassword ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                                        className={`pl-10 pr-12 h-11 ${fieldErrors.confirmPassword && touched.confirmPassword ? "border-destructive focus-visible:ring-destructive" : ""}`}
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
                                 </div>
                                 {fieldErrors.confirmPassword && touched.confirmPassword && (
                                     <p className="text-sm text-destructive flex items-center gap-1">
