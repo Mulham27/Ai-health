@@ -1,78 +1,131 @@
 "use client"
 
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { Button } from "../../components/ui/button.tsx";
 import { Input } from "../../components/ui/input.tsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card.tsx";
 import { Label } from "@radix-ui/react-label";
-import { AlertDialog, AlertDialogDescription } from "@radix-ui/react-alert-dialog";
-import { Mail } from "lucide-react"
+import { Mail, AlertCircle, ArrowLeft } from "lucide-react"
 import { api } from "../../lib/api"
 import { z } from "zod"
 import { toast } from "sonner"
 
+const emailSchema = z.string().min(1, "Email is required").email("Please enter a valid email address")
+
 export function ForgotPasswordPage() {
     const [email, setEmail] = useState("")
-    const [error, setError] = useState("")
-    const [message, setMessage] = useState("")
     const [fieldErrors, setFieldErrors] = useState<{ email?: string }>({})
+    const [touched, setTouched] = useState<{ email?: boolean }>({})
+    const [message, setMessage] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
-    
+
+    const validateEmail = (value: string) => {
+        const result = emailSchema.safeParse(value)
+        if (!result.success) {
+            setFieldErrors({ email: result.error.errors[0]?.message })
+        } else {
+            setFieldErrors({})
+        }
+    }
+
+    const handleBlur = () => {
+        setTouched({ email: true })
+        validateEmail(email)
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError("")
+        setTouched({ email: true })
         setMessage("")
+
+        const result = emailSchema.safeParse(email)
+        if (!result.success) {
+            setFieldErrors({ email: result.error.errors[0]?.message })
+            toast.error("Please enter a valid email address")
+            return
+        }
+        setFieldErrors({})
         setIsLoading(true)
+
         try {
-            const schema = z.object({ email: z.string().email() })
-            const parsed = schema.safeParse({ email })
-            if (!parsed.success) {
-                setFieldErrors({ email: parsed.error.issues[0]?.message || "Invalid email" })
-                setError("Please enter a valid email")
-                return
-            }
-            setFieldErrors({})
             const res = await api.post("/auth/forgot-password", { email })
             const msg = res.data?.message || "If that email exists, a reset email has been sent."
             setMessage(msg)
-            toast.success(msg)
+            toast.success("Reset link sent! Check your email.")
         } catch (err: any) {
             const message = err?.response?.data?.error || "Something went wrong. Please try again."
-            setError(message)
+            setFieldErrors({ email: message })
             toast.error(message)
         } finally {
             setIsLoading(false)
         }
     }
 
+    const isFormValid = email && !fieldErrors.email
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-background px-4">
-            <div className="w-full max-w-md">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Forgot Password</CardTitle>
-                        <CardDescription>Enter your email to receive a reset link</CardDescription>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12">
+            <div className="w-full max-w-md space-y-6">
+                <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="space-y-1 pb-4">
+                        <CardTitle className="text-2xl">Forgot Password</CardTitle>
+                        <CardDescription>
+                            Enter your email address and we'll send you a link to reset your password
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {(error || message) && (
-                                <AlertDialog>
-                                    <AlertDialogDescription>{error || message}</AlertDialogDescription>
-                                </AlertDialog>
-                            )}
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            {message && (
+                                <div className="p-3 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm">
+                                    {message}
                                 </div>
-                                {fieldErrors.email && <p className="text-sm text-destructive">{fieldErrors.email}</p>}
+                            )}
+                            
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input 
+                                        id="email" 
+                                        type="email" 
+                                        placeholder="name@example.com"
+                                        value={email} 
+                                        onChange={(e) => {
+                                            setEmail(e.target.value)
+                                            if (touched.email) validateEmail(e.target.value)
+                                        }}
+                                        onBlur={handleBlur}
+                                        className={`pl-10 h-11 ${fieldErrors.email && touched.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                                    />
+                                </div>
+                                {fieldErrors.email && touched.email && (
+                                    <p className="text-sm text-destructive flex items-center gap-1">
+                                        <AlertCircle className="h-3 w-3" />
+                                        {fieldErrors.email}
+                                    </p>
+                                )}
                             </div>
-                            <Button type="submit" className="w-full" disabled={isLoading || !email}>{isLoading ? "Sending..." : "Send Reset Link"}</Button>
+
+                            <Button 
+                                type="submit" 
+                                className="w-full h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-md" 
+                                disabled={isLoading || !isFormValid}
+                            >
+                                {isLoading ? "Sending..." : "Send Reset Link"}
+                            </Button>
                         </form>
+
+                        <div className="mt-6 text-center">
+                            <Link 
+                                to="/login" 
+                                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                                Back to Sign In
+                            </Link>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -81,5 +134,3 @@ export function ForgotPasswordPage() {
 }
 
 export default ForgotPasswordPage
-
-
