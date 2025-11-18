@@ -53,7 +53,8 @@ You can run the full stack (MongoDB, Mailpit, backend, frontend) with a single c
 
 ```bash
 # From the project root
-docker compose up --build
+docker compose build        # Build images
+docker compose up           # Start services (add -d for detached)
 ```
 
 - Frontend: `http://localhost:5173`
@@ -65,6 +66,20 @@ To stop:
 
 ```bash
 docker compose down
+# Remove volumes too (optional)
+docker compose down -v
+```
+
+Build/run individual images (optional):
+
+```bash
+# Backend
+docker build -t ai-health-backend ./backend
+docker run --env-file backend/.env --network host ai-health-backend
+
+# Frontend (connects to backend via docker network)
+docker build -t ai-health-frontend ./frontend
+docker run -p 5173:5173 ai-health-frontend
 ```
 
 ### 3. Start services manually (alternative)
