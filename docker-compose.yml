@@ -28,9 +28,6 @@ services:
       - ./backend/.env
     environment:
       - MONGODB_URI=mongodb://mongo:27017/ai_health
-      - SMTP_HOST=mailpit
-      - SMTP_PORT=1025
-      - SMTP_SECURE=false
     depends_on:
       - mongo
       - mailpit
