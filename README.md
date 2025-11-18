@@ -47,7 +47,27 @@ Create `frontend/.env` if you want to customize the API base (defaults to `http:
 VITE_API_URL=http://localhost:4000/api
 ```
 
-### 2. Start services (recommended)
+### 2. Start services with Docker (recommended)
+
+You can run the full stack (MongoDB, Mailpit, backend, frontend) with a single command using Docker Compose.
+
+```bash
+# From the project root
+docker compose up --build
+```
+
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:4000/api`
+- MongoDB: `mongodb://127.0.0.1:27017/ai_health`
+- Mailpit UI (reset emails): `http://localhost:8025`
+
+To stop:
+
+```bash
+docker compose down
+```
+
+### 3. Start services manually (alternative)
 
 ```bash
 # MongoDB
@@ -57,7 +77,7 @@ docker run -d --name ai_health_mongo -p 27017:27017 -v ai_health_mongo_data:/dat
 docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit
 ```
 
-### 3. Backend
+### 4. Backend
 
 ```bash
 cd backend
@@ -67,7 +87,7 @@ pnpm dev
 
 The API is available at `http://localhost:4000/api`.
 
-### 4. Frontend
+### 5. Frontend
 
 ```bash
 cd frontend
