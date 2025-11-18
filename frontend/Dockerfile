@@ -11,7 +11,7 @@ COPY index.html ./index.html
 COPY globals.css ./globals.css
 COPY src ./src
 
-ENV VITE_API_URL=http://backend:4000/api
+ENV VITE_API_URL=http://localhost:4000/api
 
 EXPOSE 5173
 
