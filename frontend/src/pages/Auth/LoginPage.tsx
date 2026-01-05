@@ -84,9 +84,25 @@ export function LoginPage() {
             toast.success("Welcome back! Signed in successfully")
             navigate("/")
         } catch (err: any) {
-            const message = err?.response?.data?.error || "Invalid credentials. Please try again."
-            setFieldErrors({ email: message, password: message })
-            toast.error(message)
+            const status = err?.response?.status
+            const errorData = err?.response?.data?.error || "Invalid credentials. Please try again."
+            
+            // Show specific error messages
+            if (status === 401) {
+                const errorMsg = typeof errorData === "string" ? errorData : "Invalid email or password"
+                setFieldErrors({ 
+                    email: errorMsg.includes("email") ? errorMsg : undefined,
+                    password: errorMsg.includes("password") || errorMsg.includes("credentials") ? errorMsg : undefined
+                })
+                toast.error(errorMsg)
+            } else if (status === 400) {
+                const errorMsg = typeof errorData === "string" ? errorData : "Please check your input"
+                setFieldErrors({ email: errorMsg })
+                toast.error(errorMsg)
+            } else {
+                setFieldErrors({ email: errorData, password: errorData })
+                toast.error(errorData)
+            }
         } finally {
             setIsLoading(false)
         }
